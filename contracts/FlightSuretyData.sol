@@ -106,6 +106,38 @@ contract FlightSuretyData {
     {
     }
 
+    /**
+    *      Check if airline is registered
+    *      
+    *
+    */   
+    function isAirline
+                        (
+                            address airline
+                        )
+                        external
+                        pure
+                        returns(bool)
+    {
+        return false;
+    }
+
+    /**
+    *      Check if airline is registered
+    *      
+    *
+    */   
+    function authorizeCaller
+                        (
+                            address flightsuretyapp_address
+                        )
+                        external
+                        pure
+                        returns(bool)
+    {
+        return true;
+    }
+
 
    /**
     * @dev Buy insurance for a flight
