@@ -100,9 +100,9 @@ contract FlightSuretyData {
     */   
     function registerAirline
                             (   
+                                address Airline
                             )
                             external
-                            pure
     {
     }
 

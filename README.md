@@ -1,5 +1,6 @@
 # Package versions
 Node: 14.19.1
+Truffle: 5.0.2
 
 # FlightSurety
 
