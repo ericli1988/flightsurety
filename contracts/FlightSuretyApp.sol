@@ -24,6 +24,9 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
+    uint constant REGISTER_AIRLINE_MULTICALL_LIMIT = 4;
+    uint constant REGISTER_AIRLINE_MULTICALL_PERCENTAGE = 50;
+
     address private contractOwner;          // Account used to deploy contract
 
     struct Flight {
@@ -33,9 +36,10 @@ contract FlightSuretyApp {
         address airline;
     }
     mapping(bytes32 => Flight) private flights;
-
+    mapping(address => address[]) private airline_multicall;    
     FlightSuretyData flightSuretyData;
 
+    bool private operational = true;
  
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -52,7 +56,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(operational, "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -80,7 +84,7 @@ contract FlightSuretyApp {
                                 public 
     {
         contractOwner = msg.sender;
-        flightSuretyData = FlightSuretyData(dataContract);
+        flightSuretyData = FlightSuretyData(dataContract);       
     }
 
     /********************************************************************************************/
@@ -95,6 +99,36 @@ contract FlightSuretyApp {
         return true;  // Modify to call data contract's status
     }
 
+
+  /**
+   * @dev Sets contract operations on/off
+   *
+   * When operational mode is disabled, all write transactions except for this one will fail
+   */ 
+   /*   
+    function setOperatingStatus(bool mode) external {
+    require(mode != operational, "New mode must be different from existing mode");
+
+    bool isDuplicate = false;
+
+    for(uint i = 0; i < multiCalls.length; i++) {
+      if (multiCalls[i] == msg.sender) {
+        isDuplicate = true;
+        break;
+      }
+    }
+
+    require(!isDuplicate, "Caller has already called this function.");
+
+    multiCalls.push(msg.sender);
+
+    if (multiCalls.length >= M) {
+      operational = mode;
+      multiCalls = new address[](0);
+    }
+  }
+  */
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -106,12 +140,33 @@ contract FlightSuretyApp {
     */   
     function registerAirline
                             (   
+                                address airline
                             )
                             external
-                            pure
-                            returns(bool success, uint256 votes)
+                            requireIsOperational
+                            returns(bool)
     {
-        return (success, 0);
+        address[] memory registeredAirlines = flightSuretyData.getRegisteredAirlines();
+        // require(flightSuretyData.airlines().isAdmin, "Caller is not an admin");
+        if (registeredAirlines.length < REGISTER_AIRLINE_MULTICALL_LIMIT) {
+            return flightSuretyData.registerAirline(airline);
+        } else {
+            
+            bool isDuplicate = false;
+            for (uint i=0; i < airline_multicall[airline].length; i++) {
+                if (airline_multicall[airline][i] == msg.sender) {
+                    isDuplicate = true;
+                    break;
+                }    
+            }
+
+            require(!isDuplicate, "Caller has already voted");
+            airline_multicall[airline].push(msg.sender);
+            if (airline_multicall[airline].length >= registeredAirlines.length * REGISTER_AIRLINE_MULTICALL_PERCENTAGE / 100 ) {
+                    flightSuretyData.registerAirline(airline);
+            }
+            
+        }
     }
 
 
@@ -201,6 +256,7 @@ contract FlightSuretyApp {
     mapping(bytes32 => ResponseInfo) private oracleResponses;
 
     // Event fired each time an oracle submits a response
+
     event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status);
 
     event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
@@ -342,6 +398,9 @@ contract FlightSuretyApp {
 
 
 contract FlightSuretyData {
-    function registerAirline(address Airline) external;
+    function registerAirline(address Airline) external payable returns(bool);
+    function isAirlineRegistered(address airline) external view returns(bool);
+    // function numberOfAirlines() external view returns(uint);
+    function getRegisteredAirlines() external returns(address[] memory);
 }
 

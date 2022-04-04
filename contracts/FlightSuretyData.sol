@@ -12,10 +12,26 @@ contract FlightSuretyData {
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
+    struct airline {
+        uint id;
+        bool isRegistered;
+        bool isFunded;
+    }
+
+    mapping(address => airline) private airlines;                                // Mapping for storing airlines
+    address[] private registeredAirlines = new address[](0);
+    
+    uint constant M = 4;
+    uint airlineSize = 0;
+    uint256 registrationFee = 10 wei;
+
+    // Restrict data contract callers
+    mapping(address => uint256) private authorizedContracts;
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-
+    event AirlineRegistered(address addr);
 
     /**
     * @dev Constructor
@@ -23,10 +39,16 @@ contract FlightSuretyData {
     */
     constructor
                                 (
+                                    address firstAirline
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
+        airlines[firstAirline] = airline({id: 0, 
+                                        isRegistered: true, 
+                                        isFunded: false});
+        registeredAirlines.push(firstAirline);
+        airlineSize++;
     }
 
     /********************************************************************************************/
@@ -53,6 +75,32 @@ contract FlightSuretyData {
     modifier requireContractOwner()
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+
+    // Define a modifier that checks if the paid amount is sufficient to cover the price
+    modifier paidEnough(uint256 _price) { 
+        require(msg.value >= _price); 
+        _;
+    }
+  
+    // Define a modifier that checks the price and refunds the remaining balance
+    modifier checkValue(address newAirline) {
+        _;
+        uint _price = registrationFee;
+        uint amountToReturn = msg.value - _price;
+        newAirline.transfer(amountToReturn);
+    }
+
+    modifier canOnlyBeCalledByApp() {
+        _;
+    }
+
+    /**
+    * @dev Modifier that requires function caller to be authorized
+    */
+    modifier requireIsCallerAuthorized() {
+        require(authorizedContracts[msg.sender] == 1, "Caller is not authorized");
         _;
     }
 
@@ -100,10 +148,28 @@ contract FlightSuretyData {
     */   
     function registerAirline
                             (   
-                                address Airline
+                                address _airline
                             )
                             external
+                            requireIsCallerAuthorized
+                            returns(bool)
     {
+        airlines[_airline] = airline({id: registeredAirlines.length, 
+                                        isRegistered: true, 
+                                        isFunded: false});
+        registeredAirlines.push(_airline);
+        // emit AirlineRegistered(_airline);
+        return true;
+    }
+
+    function fundAirline(address _airline)
+                        external
+                        canOnlyBeCalledByApp
+                        // payable
+                        // paidEnough(registrationFee)
+                        // checkValue(airline) 
+    {
+
     }
 
     /**
@@ -111,31 +177,38 @@ contract FlightSuretyData {
     *      
     *
     */   
-    function isAirline
+    function isAirlineRegistered
                         (
-                            address airline
+                            address _airline
                         )
                         external
-                        pure
+                        view
                         returns(bool)
     {
+        
+        for (uint i=0; i < registeredAirlines.length; i++) {
+            if (_airline == registeredAirlines[i]) {
+                return true;
+            }    
+        }
+        
         return false;
     }
 
-    /**
-    *      Check if airline is registered
-    *      
-    *
-    */   
-    function authorizeCaller
-                        (
-                            address flightsuretyapp_address
-                        )
-                        external
-                        pure
-                        returns(bool)
+/*
+    function numberOfAirlines() 
+        external 
+        returns(uint) 
     {
-        return true;
+        return registeredAirlines.length;
+    }
+*/
+
+    function getRegisteredAirlines()
+        external
+        returns(address[] memory)
+    {
+        return registeredAirlines;
     }
 
 
@@ -191,7 +264,7 @@ contract FlightSuretyData {
 
     function getFlightKey
                         (
-                            address airline,
+                            address _airline,
                             string memory flight,
                             uint256 timestamp
                         )
@@ -199,7 +272,7 @@ contract FlightSuretyData {
                         internal
                         returns(bytes32) 
     {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
+        return keccak256(abi.encodePacked(_airline, flight, timestamp));
     }
 
     /**
@@ -213,6 +286,20 @@ contract FlightSuretyData {
         fund();
     }
 
+
+    /**
+    * @dev Adds address to authorized contracts
+    */
+    function authorizeCaller(address contractAddress) external requireContractOwner {
+        authorizedContracts[contractAddress] = 1;
+    }
+
+    /**
+    * @dev Removes address from authorized contracts
+    */
+    function deauthorizeCaller(address contractAddress) external requireContractOwner {
+        delete authorizedContracts[contractAddress];
+    }
 
 }
 
