@@ -3,7 +3,7 @@ var mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble s
 
 module.exports = {
   networks: {
-    development_old: {
+    development_new: {
       provider: function() {
         return new HDWalletProvider(mnemonic, "http://127.0.0.1:8545/", 0, 50);
       },
