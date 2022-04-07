@@ -5,7 +5,7 @@ var BigNumber = require('bignumber.js');
 contract('Flight Surety Tests', async (accounts) => {
 
   var config;
-    const TEST_ORACLES_COUNT = 20;
+    const TEST_ORACLES_COUNT = 30;
 
     const STATUS_CODE_UNKNOWN = 0;
     const STATUS_CODE_ON_TIME = 10;
@@ -200,11 +200,6 @@ contract('Flight Surety Tests', async (accounts) => {
 
   });
 
-  it('get insurance payout', async () => {
-     let payout = await config.flightSuretyData.getInsurancePayout.call(accounts[6]);
-     console.log(Number(payout));
-  })
-
   it('can request flight status', async () => {
     
     // ARRANGE
@@ -244,19 +239,24 @@ contract('Flight Surety Tests', async (accounts) => {
 
   it('passenger is credited', async() => {
     let payout = await config.flightSuretyData.getInsurancePayout.call(accounts[6]);
-    console.log(Number(payout));
     assert.equal(Number(payout), web3.utils.toWei("0.15", "ether"), "payout amount is correct");
   });
 
-  it('passenger can get paid', async() => {
+  it('passenger withdraws insurance', async() => {
     let balanceBeforePay = await web3.eth.getBalance(accounts[6]);
-    let result = await config.flightSuretyApp.withdraw({from: accounts[6], gasPrice:0});
+    let result = await config.flightSuretyApp.withdraw({from: accounts[6]});
+    // let result = await config.flightSuretyData.pay(accounts[6], {from: accounts[6]});
     let balanceAfterPay = await web3.eth.getBalance(accounts[6]);
+
+    console.log("insurance received", balanceAfterPay - balanceBeforePay );
 
     let gasPrice = await web3.eth.getGasPrice();
     let gasUsed = result.receipt.gasUsed;
     assert.equal(balanceAfterPay > balanceBeforePay, true, "User has withdrawn payout to his wallet");
 
+    console.log("gas used", gasUsed);
+    console.log("gas Price", gasPrice);
+    console.log("gas paid", gasUsed * gasPrice);
     let payout = await config.flightSuretyData.getInsurancePayout.call(accounts[6]);
     assert.equal(Number(payout), 0, "payout to be paid is reduced to 0");
 

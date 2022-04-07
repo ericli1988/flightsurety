@@ -212,9 +212,11 @@ contract FlightSuretyApp {
         }
 
         flightSuretyData.updateFlightStatus(airline, flight, timestamp, isLate);
+        emit FlightStatusUpdated(airline, flight, timestamp, isLate);
 
         if (isLate) {
             flightSuretyData.creditInsurees(airline, flight, timestamp);
+            emit InsuranceCredited(airline, flight, timestamp);
         }
         // call pay functions
     }
@@ -264,6 +266,7 @@ contract FlightSuretyApp {
 
     function withdraw () external requireIsOperational {
         flightSuretyData.pay(msg.sender);
+        emit InsuranceWithdrew(msg.sender);
     }
 
 
@@ -304,8 +307,12 @@ contract FlightSuretyApp {
 
     event AirlineRegistered(address addr);
     event AirlineFunded(address addr);
+    event InsuranceWithdrew(address addr);
 
+    event InsuranceBought(address airline, string flight, uint256 timestamp, address passenger, uint amount);
     event FlightStatusInfo(address airline, string flight, uint256 timestamp, uint8 status);
+    event FlightStatusUpdated(address airline, string flight, uint256 timestamp, bool isLate);
+    event InsuranceCredited(address airline, string flight, uint256 timestamp);
 
     event OracleReport(address airline, string flight, uint256 timestamp, uint8 status);
 
@@ -313,7 +320,6 @@ contract FlightSuretyApp {
     // Oracles track this and if they have a matching index
     // they fetch data and submit a response
     event OracleRequest(uint8 index, address airline, string flight, uint256 timestamp);
-    event InsuranceBought(address airline, string flight, uint256 timestamp, address passenger, uint amount);
 
     // Register an oracle with the contract
     function registerOracle
@@ -462,8 +468,6 @@ contract FlightSuretyData {
     function updateFlightStatus(address _airline, string _flight, uint256 timestamp, bool isLate) external;
     function creditInsurees(address _airline, string _flight, uint256 timestamp) external;
     function pay(address _airline) external;
-
-
 }
 
 

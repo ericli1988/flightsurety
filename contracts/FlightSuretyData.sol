@@ -423,6 +423,7 @@ contract FlightSuretyData {
 
     }
 
+
    /**
     * @dev Initial funding for the insurance. Unless there are too many delayed flights
     *      resulting in insurance payouts, the contract should be self-sustaining
@@ -458,7 +459,8 @@ contract FlightSuretyData {
                             external 
                             payable 
     {
-        fund();
+        // fund();
+        // address(this).transfer(msg.value);
     }
 
 
