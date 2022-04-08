@@ -104,7 +104,7 @@ contract FlightSuretyData {
     }
 
     modifier requireAirlineIsFunded(address _airline) {
-        require(isAirlineFunded(_airline) == true);
+        require(isAirlineFunded(_airline) == true, "Airline is not funded");
         _;
     }
 
@@ -265,6 +265,7 @@ contract FlightSuretyData {
         requireIsCallerAuthorized
         requireAirlineIsFunded(_airline)
     {
+        require(flights[_flight_num].isRegistered = false, "Flight is already registered");
         flights[_flight_num] = flight({
                                 flight_num: _flight_num,
                                 isRegistered: true,
@@ -365,6 +366,7 @@ contract FlightSuretyData {
                                 uint256 timestamp
                         )
                         external
+                        view
                         returns(bool)
     {
         return flightStatuses[getFlightKey(_airline, _flight, timestamp)];
@@ -385,8 +387,8 @@ contract FlightSuretyData {
     {
         for (uint i=0; i < insurances[getFlightKey(_airline, _flight, timestamp)].length; i++) {
             insurancePayout[_in.passenger] = 0;
-            insurance _in = insurances[getFlightKey(_airline, _flight, timestamp)][i];
-            _in.isCredited = true;
+            insurance memory _in = insurances[getFlightKey(_airline, _flight, timestamp)][i];
+            insurances[getFlightKey(_airline, _flight, timestamp)][i].isCredited = true;
             insurancePayout[_in.passenger] = _in.amount.mul(3).div(2);
             //insurancePayout[_in.passenger] = SafeMath.add(_in.amount.mul(3).div(2), insurancePayout[_in.passenger]);
         }
@@ -397,6 +399,7 @@ contract FlightSuretyData {
                                     address _passenger
                                 )
                                 external
+                                view
                                 requireIsOperational
                                 returns(uint256)
     {

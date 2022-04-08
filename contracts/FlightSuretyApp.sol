@@ -109,7 +109,12 @@ contract FlightSuretyApp {
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
-
+    function isOperational() 
+                            public view
+                            returns(bool) 
+    {
+        return flightSuretyData.isOperational();  // Modify to call data contract's status
+    }
 
 
     /********************************************************************************************/
@@ -173,6 +178,7 @@ contract FlightSuretyApp {
         // flightSuretyData.transfer(registrationFee);
         flightSuretyData.fundAirline(msg.sender);
         emit AirlineFunded(msg.sender);
+        return true;
     }
 
 
@@ -256,7 +262,7 @@ contract FlightSuretyApp {
     {
         require(msg.value > 0, "Need to pay more than 0 to buy insurance");
         require(msg.value <= MAX_INSURANCE, "Cannot pay more than maximum");
-        require(flightSuretyData.isFlightRegistered(_flight), "Flight exists");
+        require(flightSuretyData.isFlightRegistered(_flight), "Flight does not exist");
         require(!flightSuretyData.isInsured(_airline, _flight, timestamp, msg.sender), "Passenger is already insured");
         
         address(flightSuretyData).transfer(msg.value);
@@ -389,6 +395,9 @@ contract FlightSuretyApp {
         }
     }
 
+    function getRegistrationFee() public pure returns(uint256) {
+        return REGISTRATION_FEE;
+    }
 
     function getFlightKey
                         (

@@ -19,13 +19,63 @@
         </button>
     </nav>
 
+
+
     <main class="container">
 
         <div id="display-wrapper" class="top-20">
         </div>
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+
+        <div>
+        <label for="airlines">Choose an airline:</label>
+            <select name="airlines" id="airline">
+            </select>
         </div>
+
+        <div>
+        <label for="airlines">Choose a flight:</label>
+            <select name="flights" id="flight">
+            </select>
+        </div>
+
+        <div>
+        <label for="airlines">Choose a passenger:</label>
+            <select name="passengers" id="passenger">
+            </select>
+        </div>
+
+        <div class="row top-20"><b>Actions</b></div> 
+
+        <div class="row top-20">
+            <label class="form">Airline Registration</label> 
+            <btn class="btn btn-primary" id="btn-register-airline">Register Airline</btn>
+        </div>
+
+        <div class="row top-20">
+            <label class="form">Fund airline</label> 
+            <btn class="btn btn-primary" id="btn-fund-airline">Fund Airline</btn>
+        </div>
+
+
+        <div class="row top-20">
+            <label class="form">Flight Registration</label> 
+            <btn class="btn btn-primary" id="btn-register-flight">Register Flight</btn>
+        </div>
+
+        <div class="row top-20">
+            <label class="form">Insurance Amount (ETH)</label>
+            <input type="text" id="insurance-amount">
+            <btn class="btn btn-primary" id="btn-buy-insurance">Buy Insurance</btn>
+        </div>
+
+        <div class="row top-20">
+            <label class="form">Flight</label> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        </div>
+
+        <div class="row top-20">
+            <label class="form">Withdraw</label> <btn class="btn btn-primary" id="btn-withdraw">Withdraw</btn>
+        </div>
+
     </main>
 
 </body>

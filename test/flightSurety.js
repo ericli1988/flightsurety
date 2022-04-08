@@ -28,7 +28,7 @@ contract('Flight Surety Tests', async (accounts) => {
   it(`(multiparty) has correct initial isOperational() value`, async function () {
 
     // Get operating status
-    let status = await config.flightSuretyData.isOperational.call();
+    let status = await config.flightSuretyApp.isOperational.call();
     assert.equal(status, true, "Incorrect initial operating status value");
 
   });
@@ -148,6 +148,16 @@ contract('Flight Surety Tests', async (accounts) => {
     let result = await config.flightSuretyData.isAirlineFunded.call(accounts[1]);
     assert.equal(result, true, "Airline is funded");
 
+    let reverted = false;
+      try 
+      {
+          await config.flightSuretyApp.fundAirline({from: accounts[1], value: web3.utils.toWei("10", "ether")});
+      }
+      catch(e) {
+          reverted = true;
+      }
+      assert.equal(reverted, true, "Airline cannot be funded again");    
+
     // fund the other airlines
     await config.flightSuretyApp.fundAirline({from: accounts[2], value: web3.utils.toWei("10", "ether")});
     await config.flightSuretyApp.fundAirline({from: accounts[3], value: web3.utils.toWei("10", "ether")});
@@ -185,10 +195,11 @@ contract('Flight Surety Tests', async (accounts) => {
   })
 
 
+
   it('can register oracles', async () => {
     
     // ARRANGE
-    let fee = await config.flightSuretyApp.REGISTRATION_FEE.call();
+    let fee = await config.flightSuretyApp.getRegistrationFee.call();
 
     // ACT
     for(let a=1; a<TEST_ORACLES_COUNT; a++) {      
