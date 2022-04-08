@@ -18,7 +18,7 @@ To install, download or clone the repo, then:
 ## Develop Client
 
 To run ganache: 
-`ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -l 9999999 -a 50 -e 10000
+`ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -l 9999999 -a 50 -e 10000`
 
 To run truffle tests:
 
